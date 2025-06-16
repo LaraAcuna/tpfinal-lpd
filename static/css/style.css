@@ -1,4 +1,4 @@
-.content {
+.contenido {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -11,17 +11,17 @@
     gap: 10px;
 }
 
-.join {
+.unirse {
     display: flex;
     flex-direction: row;
     width: 100%;
 }
 
-.create-btn {
+button.crear {
     width: 100%;
 }
 
-.message-box {
+.cuadro-mensaje {
     border-color: black;
     border-width: 2px;
     border-style: solid;
@@ -34,7 +34,7 @@
     align-items: stretch;
 }
 
-.messages {
+.mensajes {
     overflow-y: scroll;
     flex: 1;
     width: 100%;
@@ -49,11 +49,11 @@ h2 {
   text-align: center;
 }
 
-#message {
+#mensaje {
     flex: 1;
 }
 
-.text {
+.burbuja-mensaje {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -62,7 +62,7 @@ h2 {
     padding-right: 10px;
 }
 
-.muted {
+.detalle {
     font-size: 10px;
     color: darkgray;
 }

@@ -8,106 +8,105 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'd2025fml'
 socketio = SocketIO(app)
 
-rooms = {}
+salas = {}
 
 
 # Funcion para crear codigos de sala
-def generate_unique_code(length):
+def generar_codigo_unico(caracteres):
     while True:
-        code = ""
-        for _ in range(length):
-            code += random.choice(ascii_uppercase)
+        codigo = ""
+        for _ in range(caracteres):
+            codigo += random.choice(ascii_uppercase)
 
-        if code not in rooms:
+        if codigo not in salas:
             break
-    return code
+    return codigo
+
 
 # Creamos las rutas
 # Homepage
-
-
 @app.route("/", methods=["POST", "GET"])
-def home():
+def inicio():
     session.clear()
     if request.method == "POST":
-        name = request.form.get("name")
-        code = request.form.get("code")
-        join = request.form.get("join", False)  # Por defecto es False
-        create = request.form.get("create", False)
+        nombre = request.form.get("nombre")
+        codigo_sala = request.form.get("codigo")
+        unirse = request.form.get("unirse", False)  # Por defecto es False
+        crear = request.form.get("crear", False)
 
-        if not name:
-            return render_template("home.html", error="Ingrese un nombre.", code=code, name=name)
+        if not nombre:
+            return render_template("inicio.html", error="Ingrese un nombre.", codigo=codigo_sala, nombre=nombre)
 
-        if join != False and not code:
-            return render_template("home.html", error="Ingrese un codigo de sala.", code=code, name=name)
+        if unirse and not codigo_sala:
+            return render_template("inicio.html", error="Ingrese un codigo de sala.", codigo=codigo_sala, nombre=nombre)
 
-        room = code
-        if create != False:
-            room = generate_unique_code(4)
-            rooms[room] = {"members": 0, "messages": []}
-        elif code not in rooms:
-            return render_template("home.html", error="La sala no existe.", code=code, name=name)
+        sala = codigo_sala
+        if crear:
+            sala = generar_codigo_unico(4)
+            salas[sala] = {"miembros": 0, "mensajes": []}
+        elif codigo_sala not in salas:
+            return render_template("inicio.html", error="La sala no existe.", codigo=codigo_sala, nombre=nombre)
 
-        session["room"] = room
-        session["name"] = name
-        return redirect(url_for("room"))
+        session["sala"] = sala  # session es de Flask
+        session["nombre"] = nombre
+        return redirect(url_for("sala"))
 
-    return render_template("home.html")
+    return render_template("inicio.html")
 
 
 # Salas de chat
-@app.route("/room")
-def room():
-    room = session.get("room")
-    if room is None or session.get("name") is None or room not in rooms:
-        return redirect(url_for("home"))
-    return render_template("room.html", code=room, messages=rooms[room]["messages"])
+@app.route("/sala")
+def sala():
+    sala = session.get("sala")
+    if sala is None or session.get("nombre") is None or sala not in salas:
+        return redirect(url_for("inicio"))
+    return render_template("sala.html", codigo=sala, mensajes=salas[sala]["mensajes"])
 
 # Unirse a la sala (conectarse al socket)
 @socketio.on("connect")
-def connect(auth):
-    room = session.get("room")
-    name = session.get("name")
-    if not room or not name:
+def conectarse(auth):
+    sala = session.get("sala")
+    nombre = session.get("nombre")
+    if not sala or not nombre:
         return
-    if room not in rooms:
-        leave_room(room)
+    if sala not in salas:
+        leave_room(sala)  # método de socketio
         return
 
-    join_room(room)
-    send({"name": name, "message": "has entered the room"}, to=room)
-    rooms[room]["members"] += 1
-    print(f"{name} joined room {room}")
+    join_room(sala)  # método de socketio
+    send({"nombre": nombre, "mensaje": "se unió a la sala"}, to=sala)  # método de socketio
+    salas[sala]["miembros"] += 1
+    print(f"{nombre} se unió a la sala {sala}")
 
-# Abandonar la sala (deconectarse del socket
+# Abandonar la sala (deconectarse del socket)
 @socketio.on("disconnect")
-def disconnect():
-    room = session.get("room")
-    name = session.get("name")
-    leave_room(room)
+def desconectarse():
+    sala = session.get("sala")
+    nombre = session.get("nombre")
+    leave_room(sala)
 
-    if room in rooms:
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] <= 0:
-            del rooms[room]
+    if sala in salas:
+        salas[sala]["miembros"] -= 1
+        if salas[sala]["miembros"] <= 0:
+            del salas[sala]
 
-    send({"name": name, "message": "has left the room"}, to=room)
-    print(f"{name} has left the room {room}")
+    send({"nombre": nombre, "mensaje": "abandonó la sala"}, to=sala)
+    print(f"{nombre} abandonó la sala {sala}")
 
 # Manejar los mensajes enviados y transmitirlos a todos los que esten en la sala correspondiente
-@socketio.on("message")
-def message(data):
-    room = session.get("room")
-    if room not in rooms:
+@socketio.on("mensaje")
+def mensaje(data):
+    sala = session.get("sala")
+    if sala not in salas:
         return
 
-    content = {
-        "name": session.get("name"),
-        "message": data["data"]
+    contenido = {
+        "nombre": session.get("nombre"),
+        "mensaje": data["data"]
     }
-    send(content, to=room)
-    rooms[room]["messages"].append(content)
-    print(f"{session.get("name")} said: {data['data']}")
+    send(contenido, to=sala)
+    salas[sala]["mensajes"].append(contenido)
+    print(f"{session.get("nombre")} mandó un mensaje: {data['data']}")
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", debug=True, allow_unsafe_werkzeug=True)

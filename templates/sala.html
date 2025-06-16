@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="cuadro-mensaje">
+    <h2>Sala de Chat: {{codigo}}</h2>
+    <div class="mensajes" id="mensajes"></div>
+    <div class="inputs">
+        <input type="text" rows="3" placeholder="Ingrese un mensaje..." name="mensaje" id="mensaje"/>
+        <button type="button" name="enviar" id="enviar" onClick="enviarMensaje()">
+            Enviar
+        </button>
+    </div>
+</div>
+<script type="text/javascript">
+    // Para actualizar el chat sin recargar la pagina
+    let socketio = io(); // Se asocia con el socket del server
+
+    const mensajes = document.getElementById("mensajes")
+
+    const crearMensaje = (nombre, mensaje) => {
+        const contenido = `
+        <div class="burbuja-mensaje">
+            <span>
+                <strong>${nombre}</strong>: ${mensaje}
+            </span>
+            <span class="detalle">
+                ${new Date().toLocaleString()}
+            </span>
+        </div>
+        `
+
+        mensajes.innerHTML += contenido;
+    };
+
+    socketio.on("message", (data) => {
+        crearMensaje(data.nombre, data.mensaje);
+    });
+
+    const enviarMensaje = () => {
+        const mensaje = document.getElementById("mensaje")
+        if (mensaje.value == "") return;
+        socketio.emit("mensaje", {data: mensaje.value})
+        mensaje.value = "";
+    };
+</script>
+{% for msj in mensajes %}
+    <script type="text/javascript">
+        crearMensaje("{{msj.nombre}}", "{{msj.mensaje}}")
+    </script>
+{% endfor %}
+{% endblock %}
