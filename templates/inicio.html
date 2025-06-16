@@ -4,13 +4,13 @@
     <h3>Ingrese a una sala para chatear</h3>
     <div>
         <label>Nombre de usuario:</label>
-        <input type="text" placeholder="Ingrese un nombre..." name="name" value="{{name}}"/>
+        <input type="text" placeholder="Ingrese un nombre..." name="nombre" value="{{nombre}}"/>
     </div>
-    <div class="join">
-        <input type="text" placeholder="Codigo de sala" name="code" value="{{code}}"/>
-        <button type="submit" name="join">Unirse a la Sala</button>
+    <div class="unirse">
+        <input type="text" placeholder="Codigo de sala" name="codigo" value="{{codigo}}"/>
+        <button type="submit" name="unirse" value="unirse">Unirse a la Sala</button>
     </div>
-    <button type="submit" name="create" class="create-btn">Crear una Sala</button>
+    <button type="submit" name="crear" value="crear" class="crear">Crear una Sala</button>
     {% if error %}
     <ul>
         <li>{{error}}</li>

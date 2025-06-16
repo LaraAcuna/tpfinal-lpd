@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="message-box">
-    <h2>Sala de Chat: {{code}}</h2>
-    <div class="messages" id="messages"></div>
+<div class="cuadro-mensaje">
+    <h2>Sala de Chat: {{codigo}}</h2>
+    <div class="mensajes" id="mensajes"></div>
     <div class="inputs">
-        <input type="text" rows="3" placeholder="Ingrese un mensaje..." name="message" id="message"/>
-        <button type="button" name="send" id="send-btn" onClick="sendMessage()">
+        <input type="text" rows="3" placeholder="Ingrese un mensaje..." name="mensaje" id="mensaje"/>
+        <button type="button" name="enviar" id="enviar" onClick="enviarMensaje()">
             Enviar
         </button>
     </div>
@@ -14,37 +14,37 @@
     // Para actualizar el chat sin recargar la pagina
     let socketio = io(); // Se asocia con el socket del server
 
-    const messages = document.getElementById("messages")
+    const mensajes = document.getElementById("mensajes")
 
-    const createMessage = (name, msg) => {
-        const content = `
-        <div class="text">
+    const crearMensaje = (nombre, mensaje) => {
+        const contenido = `
+        <div class="burbuja-mensaje">
             <span>
-                <strong>${name}</strong>: ${msg}
+                <strong>${nombre}</strong>: ${mensaje}
             </span>
-            <span class="muted">
+            <span class="detalle">
                 ${new Date().toLocaleString()}
             </span>
         </div>
         `
 
-        messages.innerHTML += content;
+        mensajes.innerHTML += contenido;
     };
 
     socketio.on("message", (data) => {
-        createMessage(data.name, data.message);
+        crearMensaje(data.nombre, data.mensaje);
     });
 
-    const sendMessage = () => {
-        const message = document.getElementById("message")
-        if (message.value == "") return;
-        socketio.emit("message", {data: message.value})
-        message.value = "";
+    const enviarMensaje = () => {
+        const mensaje = document.getElementById("mensaje")
+        if (mensaje.value == "") return;
+        socketio.emit("mensaje", {data: mensaje.value})
+        mensaje.value = "";
     };
 </script>
-{% for msg in messages %}
+{% for msj in mensajes %}
     <script type="text/javascript">
-        createMessage("{{msg.name}}", "{{msg.message}}")
+        crearMensaje("{{msj.nombre}}", "{{msj.mensaje}}")
     </script>
 {% endfor %}
 {% endblock %}
