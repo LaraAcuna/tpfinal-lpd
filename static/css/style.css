@@ -15,6 +15,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
+    color: black;
 }
 
 button.crear {
@@ -26,12 +27,13 @@ button.crear {
     border-width: 2px;
     border-style: solid;
     border-radius: 10px;
-    background-color: whitesmoke;
+    background-color: #e0e0e0;
     height: 80vh;
     display: flex;
     flex-direction: column;
     width: 80vw;
     align-items: stretch;
+    padding: 8px;
 }
 
 .mensajes {
@@ -43,6 +45,7 @@ button.crear {
 .inputs {
     padding: 10px;
     display: flex;
+
 }
 
 h2 {
@@ -51,6 +54,9 @@ h2 {
 
 #mensaje {
     flex: 1;
+    font-size: 1.2em;
+    padding: 12px;
+    height: 3em;
 }
 
 .burbuja-mensaje {
@@ -60,9 +66,46 @@ h2 {
     justify-content: space-between;
     padding-left: 10px;
     padding-right: 10px;
+    font-size: 1.4em;
+    margin-bottom: 18px;
+}
+
+/* Solo para mensajes de usuario (no sistema) */
+.burbuja-mensaje:not(.sistema) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px;
+    background: #fff;
+    padding: 12px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 18px;
+    word-break: break-word;
+    max-width: 40%;
 }
 
 .detalle {
     font-size: 10px;
-    color: darkgray;
+    color: black;
+}
+
+#enviar {
+    font-size: 1.2em;
+    padding: 12px 28px;
+}
+
+.inicio-style {
+    background-color: #e0e0e0;
+    border: 2.5px solid black;
+    border-radius: 18px;
+    margin: 40px auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 80vw;
+    max-width: 500px;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px 18px 18px 18px;
 }

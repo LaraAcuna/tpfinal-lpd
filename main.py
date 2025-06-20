@@ -3,6 +3,16 @@ from flask_socketio import join_room, leave_room, send, SocketIO
 import random
 from string import ascii_uppercase
 
+#Generar color aleatorio
+def colorAleatorio():
+    letras = '0123456789ABCDEF'
+    color = '#'
+    for _ in range(6):
+        color += random.choice(letras)
+    return color
+
+
+
 # Creamos el Web Server con Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'd2025fml'
@@ -46,7 +56,7 @@ def inicio():
             salas[sala] = {"miembros": 0, "mensajes": []}
         elif codigo_sala not in salas:
             return render_template("inicio.html", error="La sala no existe.", codigo=codigo_sala, nombre=nombre)
-
+        session["color"] = colorAleatorio()
         session["sala"] = sala  # session es de Flask
         session["nombre"] = nombre
         return redirect(url_for("sala"))
@@ -74,7 +84,7 @@ def conectarse(auth):
         return
 
     join_room(sala)  # método de socketio
-    send({"nombre": nombre, "mensaje": "se unió a la sala"}, to=sala)  # método de socketio
+    send({"nombre": nombre, "mensaje_unirse": "se unió a la sala"}, to=sala)  # método de socketio
     salas[sala]["miembros"] += 1
     print(f"{nombre} se unió a la sala {sala}")
 
@@ -90,7 +100,7 @@ def desconectarse():
         if salas[sala]["miembros"] <= 0:
             del salas[sala]
 
-    send({"nombre": nombre, "mensaje": "abandonó la sala"}, to=sala)
+    send({"nombre": nombre, "mensaje_abandono": "abandonó la sala"}, to=sala)
     print(f"{nombre} abandonó la sala {sala}")
 
 # Manejar los mensajes enviados y transmitirlos a todos los que esten en la sala correspondiente
@@ -102,7 +112,8 @@ def mensaje(data):
 
     contenido = {
         "nombre": session.get("nombre"),
-        "mensaje": data["data"]
+        "mensaje": data["data"],
+        "color":session.get("color")
     }
     send(contenido, to=sala)
     salas[sala]["mensajes"].append(contenido)
@@ -111,3 +122,4 @@ def mensaje(data):
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", debug=True, allow_unsafe_werkzeug=True)
+
