@@ -1,73 +1,109 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="cuadro-mensaje" >
-    <h2>Sala de Chat: {{codigo}}</h2>
+{% extends 'base.html' %} {% block content %}
+<div class="contenido">
+  <div class="cuadro-mensaje">
+    <h2 style="font-weight: bold">Sala de Chat: {{codigo}}</h2>
     <div class="mensajes" id="mensajes"></div>
     <div class="inputs">
-        <input type="text" rows="3" placeholder="Ingrese un mensaje..." name="mensaje" id="mensaje"/>
-        <button type="button" name="enviar" id="enviar" onClick="enviarMensaje()">
-            Enviar
-        </button>
+      <input
+        type="text"
+        rows="3"
+        placeholder="Ingrese un mensaje..."
+        name="mensaje"
+        id="mensaje"
+      />
+      <button type="button" name="enviar" id="enviar" onClick="enviarMensaje()">
+        Enviar
+      </button>
     </div>
+  </div>
 </div>
 <script type="text/javascript">
-    // Para actualizar el chat sin recargar la pagina
-    let socketio = io(); // Se asocia con el socket del server
+  // Para actualizar el chat sin recargar la pagina
+  let socketio = io(); // Se asocia con el socket del server
 
-    const mensajes = document.getElementById("mensajes")
+  const mensajes = document.getElementById("mensajes");
 
+  const formatearFecha = (timestamp) => {
+    const fecha = new Date(timestamp);
+    return fecha.toLocaleString();
+  };
 
-    const crearMensaje = (nombre, mensaje,color,sistema) => {
-        let contenido
-        if(sistema){
-            contenido = `
+  const crearMensaje = (nombre, mensaje, color, sistema, timestamp) => {
+    let contenido;
+    const fechaFormateada = timestamp
+      ? formatearFecha(timestamp)
+      : new Date().toLocaleString();
+
+    if (sistema) {
+      contenido = `
                 <div class="burbuja-mensaje sistema">
                     <span style="color: ${color}">
                         <strong>${nombre}</strong> ${mensaje}
                     </span>
                     <span class="detalle">
-                        ${new Date().toLocaleString()}
+                        ${fechaFormateada}
                     </span>
                 </div>
-                `
-        }else{
-            contenido = `
+                `;
+    } else {
+      contenido = `
                 <div class="burbuja-mensaje" style="border: 2px solid ${color};">
                     <span>
                         <strong style=\"color: ${color}\">${nombre}</strong>: ${mensaje}
                     </span>
                     <span class="detalle">
-                        ${new Date().toLocaleString()}
+                        ${fechaFormateada}
                     </span>
                 </div>
-                `
-        }
+                `;
+    }
 
+    mensajes.innerHTML += contenido;
+  };
 
-        mensajes.innerHTML += contenido;
-    };
+  socketio.on("message", (data) => {
+    if ("mensaje_unirse" in data) {
+      crearMensaje(
+        data.nombre,
+        data.mensaje_unirse,
+        "#006400",
+        true,
+        data.timestamp
+      );
+    } else if ("mensaje_abandono" in data) {
+      crearMensaje(
+        data.nombre,
+        data.mensaje_abandono,
+        "#8B0000",
+        true,
+        data.timestamp
+      );
+    } else {
+      crearMensaje(
+        data.nombre,
+        data.mensaje,
+        data.color,
+        false,
+        data.timestamp
+      );
+    }
+  });
 
-    socketio.on("message", (data) => {
-        if ("mensaje_unirse" in data) {
-            crearMensaje(data.nombre, data.mensaje_unirse, "#006400", true);
-        } else if ("mensaje_abandono" in data) {
-            crearMensaje(data.nombre, data.mensaje_abandono, "#8B0000", true);
-        } else {
-            crearMensaje(data.nombre, data.mensaje, data.color, false);
-        }
-    });
-
-    const enviarMensaje = () => {
-        const mensaje = document.getElementById("mensaje")
-        if (mensaje.value == "") return;
-        socketio.emit("mensaje", {data: mensaje.value})
-        mensaje.value = "";
-    };
-
+  const enviarMensaje = () => {
+    const mensaje = document.getElementById("mensaje");
+    if (mensaje.value == "") return;
+    socketio.emit("mensaje", { data: mensaje.value });
+    mensaje.value = "";
+  };
 </script>
 {% for msj in mensajes %}
-    <script type="text/javascript">
-        crearMensaje("{{msj.nombre}}", "{{msj.mensaje}}")
-    </script>
-{% endfor %}
-{% endblock %}
+<script type="text/javascript">
+  crearMensaje(
+    "{{msj.nombre}}",
+    "{{msj.mensaje}}",
+    "{{msj.color}}",
+    false,
+    "{{msj.timestamp}}"
+  );
+</script>
+{% endfor %} {% endblock %}

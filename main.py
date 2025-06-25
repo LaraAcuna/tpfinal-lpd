@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_socketio import join_room, leave_room, emit, SocketIO
 import random
 from string import ascii_uppercase
+from datetime import datetime
+import sys
 
 #Generar color aleatorio
 def colorAleatorio():
@@ -84,7 +86,7 @@ def conectarse(auth):
         return
 
     join_room(sala)  # método de socketio
-    send({"nombre": nombre, "mensaje_unirse": "se unió a la sala"}, to=sala)  # método de socketio
+    emit("message", {"nombre": nombre, "mensaje_unirse": "se unió a la sala", "timestamp": datetime.now().isoformat()}, to=sala)  # método de socketio
     salas[sala]["miembros"] += 1
     print(f"{nombre} se unió a la sala {sala}")
 
@@ -100,7 +102,7 @@ def desconectarse():
         if salas[sala]["miembros"] <= 0:
             del salas[sala]
 
-    send({"nombre": nombre, "mensaje_abandono": "abandonó la sala"}, to=sala)
+    emit("message", {"nombre": nombre, "mensaje_abandono": "abandonó la sala", "timestamp": datetime.now().isoformat()}, to=sala)
     print(f"{nombre} abandonó la sala {sala}")
 
 # Manejar los mensajes enviados y transmitirlos a todos los que esten en la sala correspondiente
@@ -113,13 +115,25 @@ def mensaje(data):
     contenido = {
         "nombre": session.get("nombre"),
         "mensaje": data["data"],
-        "color":session.get("color")
+        "color": session.get("color"),
+        "timestamp": datetime.now().isoformat()
     }
-    send(contenido, to=sala)
+    emit("message", contenido, to=sala)
     salas[sala]["mensajes"].append(contenido)
     print(f"{session.get('nombre')} mandó un mensaje: {data['data']}")
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", debug=True, allow_unsafe_werkzeug=True)
+    # Obtener el puerto desde argumentos de línea de comandos, por defecto 5000
+    puerto = 5000
+    if len(sys.argv) > 1:
+        try:
+            puerto = int(sys.argv[1])
+        except ValueError:
+            print("Error: El puerto debe ser un número entero")
+            print("Uso: python main.py [puerto]")
+            sys.exit(1)
+    
+    print(f"Servidor iniciando en el puerto {puerto}")
+    socketio.run(app, host="0.0.0.0", port=puerto, debug=True, allow_unsafe_werkzeug=True)
 
