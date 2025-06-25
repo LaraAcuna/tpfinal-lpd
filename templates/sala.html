@@ -61,7 +61,7 @@
     mensajes.innerHTML += contenido;
   };
 
-  socketio.on("message", (data) => {
+  socketio.on("mensaje", (data) => {
     if ("mensaje_unirse" in data) {
       crearMensaje(
         data.nombre,

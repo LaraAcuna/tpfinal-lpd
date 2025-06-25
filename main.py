@@ -86,7 +86,7 @@ def conectarse(auth):
         return
 
     join_room(sala)  # método de socketio
-    emit("message", {"nombre": nombre, "mensaje_unirse": "se unió a la sala", "timestamp": datetime.now().isoformat()}, to=sala)  # método de socketio
+    emit("mensaje", {"nombre": nombre, "mensaje_unirse": "se unió a la sala", "timestamp": datetime.now().isoformat()}, to=sala)  # método de socketio
     salas[sala]["miembros"] += 1
     print(f"{nombre} se unió a la sala {sala}")
 
@@ -102,7 +102,7 @@ def desconectarse():
         if salas[sala]["miembros"] <= 0:
             del salas[sala]
 
-    emit("message", {"nombre": nombre, "mensaje_abandono": "abandonó la sala", "timestamp": datetime.now().isoformat()}, to=sala)
+    emit("mensaje", {"nombre": nombre, "mensaje_abandono": "abandonó la sala", "timestamp": datetime.now().isoformat()}, to=sala)
     print(f"{nombre} abandonó la sala {sala}")
 
 # Manejar los mensajes enviados y transmitirlos a todos los que esten en la sala correspondiente
@@ -118,7 +118,7 @@ def mensaje(data):
         "color": session.get("color"),
         "timestamp": datetime.now().isoformat()
     }
-    emit("message", contenido, to=sala)
+    emit("mensaje", contenido, to=sala)
     salas[sala]["mensajes"].append(contenido)
     print(f"{session.get('nombre')} mandó un mensaje: {data['data']}")
 
@@ -135,5 +135,5 @@ if __name__ == "__main__":
             sys.exit(1)
     
     print(f"Servidor iniciando en el puerto {puerto}")
-    socketio.run(app, host="0.0.0.0", port=puerto, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=puerto, debug=False, allow_unsafe_werkzeug=True)
 
